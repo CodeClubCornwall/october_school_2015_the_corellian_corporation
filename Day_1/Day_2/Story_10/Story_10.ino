@@ -7,6 +7,16 @@
  
 // Pin 13 has an LED connected on most Arduino boards.
 // give it a name:
+
+#include <NewPing.h>
+
+#define TRIGGER_PIN  4  // Arduino pin tied to trigger pin on the ultrasonic sensor.
+#define ECHO_PIN     5  // Arduino pin tied to echo pin on the ultrasonic sensor.
+#define MAX_DISTANCE 200 // Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm.
+
+NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); // NewPing setup of pins and maximum distance.
+ 
+
 int L_Ena = 9;
 int In1 = 8;
 int In2 = 7;
@@ -18,12 +28,15 @@ int In4 = 11;
 int LMF = 2;
 int RMF = 3;
 
+int ping_distance = 0;
+
 volatile int left_counter = 0;
 volatile int right_counter = 0;
 
 // the setup routine runs once when you press reset:
 void setup() {                
   // initialize the digital pin as an output.
+  
   pinMode(L_Ena, OUTPUT);     
   pinMode(In1, OUTPUT);
   pinMode(In2, OUTPUT);
@@ -34,96 +47,66 @@ void setup() {
   attachInterrupt (0, left_increment, RISING);
   attachInterrupt (1, right_increment, RISING);
   digitalWrite (2, HIGH);
+  digitalWrite(3, HIGH);
   Serial.begin (115200);
   int i = 0;
   int userTurn = 0;
 }
 
-void forwards(int duration);
+void forward_time(int duration);
 void backwards(int duration);
 void fastStop(int duration);
 void reset();
 void left_increment(void);
 void right_increment(void);
-//void forward(void);
+void forward_pulse(int pulse);
 void turnRight (int userTurn);
-void turnLeft (int userTurn);
-
+void turnLeft (int userTurn2);
+void standardForward(void);
 
 
 
 // the loop routine runs over and over again forever:
 void loop()
-{   //right loop
-    int i;
-  for(i=0; i<3; i++)
-    {
-      left_counter = 0;
-      right_counter = 0;
-     
-      while(left_counter < 290)
-       {
-          forwards(290);
-       }
-         
-      fastStop(1000);
-       
-      left_counter = 0;
-      right_counter = 0;
-      
-      turnRight(160);
-    }
-    reset();
+{
+  delay(50);    // Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings.
+  ping_distance = sonar.ping_cm();
+  Serial.print("Ping: ");
+  Serial.print(ping_distance); // Send ping, get distance in cm and print result (0 = outside set distance range)
+  Serial.println("cm");
+  
+  
+  if 
     
-forwards(580);
-fastStop(1000);
-turnLeft(160);
-//left loop
-i = 0;
-  for(i=0; i<2; i++)
+    (ping_distance > 20)
     {
-      left_counter = 0;
-      right_counter = 0;
-     
-      while(right_counter < 290)
-       {
-          forwards(290);
-       }
-         
-      fastStop(1000);
-       
-      left_counter = 0;
-      right_counter = 0;
-      
-      turnLeft(160);
+      standardForward();
     }
-    
-    forwards(290);
-    fastStop(1000);
-    reset();
+ 
+  else
    
-   while(1);
-   
+    { 
+       fastStop(100000);
+      // reset();
+    }
+
+
 }
 
-
-
-
-
-
-
-void turnLeft (int userTurn)
+void turnLeft (int userTurn2)
 {
       analogWrite (L_Ena, 0);
       analogWrite (R_Ena, 0);
       
+      right_counter = 0;
+      
    
-      while(right_counter < userTurn)
+      while(right_counter < userTurn2)
         {
           analogWrite (R_Ena, 255);
           analogWrite (L_Ena, 0);
           
-          digitalWrite(In1, HIGH);
+          digitalWrite(In1, LOW);
           digitalWrite(In3, HIGH);
           digitalWrite(In2, LOW);
           digitalWrite(In4, LOW);
@@ -143,12 +126,18 @@ void turnRight (int userTurn)
           analogWrite (R_Ena, 0);
           
           digitalWrite(In1, HIGH);
-          digitalWrite(In3, HIGH);
+          digitalWrite(In3, LOW);
           digitalWrite(In2, LOW);
           digitalWrite(In4, LOW);
           
         }
 } 
+
+
+
+
+
+
 
 
 void left_increment() {
@@ -160,22 +149,27 @@ void right_increment() {
 }
 
 
-/*
-void forward(void)
+
+
+void forward_pulse(int pulse)
   {
-    analogWrite(L_Ena, 235);
-    analogWrite(R_Ena, 255);
     
-    digitalWrite(In1, HIGH);
-    digitalWrite(In3, HIGH);
-    digitalWrite(In2, LOW);
-    digitalWrite(In4, LOW);
+    while(left_counter < pulse)
+      {
+        analogWrite(L_Ena, 235);
+        analogWrite(R_Ena, 255);
+    
+        digitalWrite(In1, HIGH);
+        digitalWrite(In3, HIGH);
+        digitalWrite(In2, LOW);
+        digitalWrite(In4, LOW);
+      }
   }
 
-*/
 
 
-void forwards(int duration)
+
+void forward_time(int duration)
   {
     analogWrite(L_Ena, 220);
     analogWrite(R_Ena, 255);
@@ -218,7 +212,7 @@ void fastStop(int duration)
     
 void reset()
   {
-      digitalWrite(L_Ena, LOW);
+    digitalWrite(L_Ena, LOW);
     digitalWrite(L_Ena, LOW);
      
     digitalWrite(In1, LOW);
@@ -227,6 +221,15 @@ void reset()
     digitalWrite(In4, LOW);
   }  
   
-  
+ void standardForward()
+  { 
+    analogWrite(L_Ena, 220);
+    analogWrite(R_Ena, 255);
+    
+    digitalWrite(In1, HIGH);
+    digitalWrite(In3, HIGH);
+    digitalWrite(In2, LOW);
+    digitalWrite(In4, LOW);
+  }
   
 

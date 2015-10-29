@@ -34,20 +34,21 @@ void setup() {
   attachInterrupt (0, left_increment, RISING);
   attachInterrupt (1, right_increment, RISING);
   digitalWrite (2, HIGH);
+  digitalWrite(3, HIGH);
   Serial.begin (115200);
   int i = 0;
   int userTurn = 0;
 }
 
-void forwards(int duration);
+void forward_time(int duration);
 void backwards(int duration);
 void fastStop(int duration);
 void reset();
 void left_increment(void);
 void right_increment(void);
-//void forward(void);
+void forward_pulse(int pulse);
 void turnRight (int userTurn);
-void turnLeft (int userTurn);
+void turnLeft (int userTurn2);
 
 
 
@@ -60,47 +61,77 @@ void loop()
     {
       left_counter = 0;
       right_counter = 0;
-     
-      while(left_counter < 290)
-       {
-          forwards(290);
-       }
+    
+      forward_pulse(240);
          
       fastStop(1000);
        
       left_counter = 0;
       right_counter = 0;
       
-      turnRight(160);
+      turnRight(150);
     }
+    
+    left_counter = 0;
+    right_counter = 0;
+    
     reset();
     
-forwards(580);
+//Middle straight code    
+forward_pulse(480);
 fastStop(1000);
-turnLeft(160);
-//left loop
-i = 0;
-  for(i=0; i<2; i++)
-    {
-      left_counter = 0;
-      right_counter = 0;
-     
-      while(right_counter < 290)
-       {
-          forwards(290);
-       }
-         
+
+left_counter = 0;
+right_counter = 0;
+
+turnLeft(170);//160 before 200 too much 
+
+fastStop(1000);
+
+
+
+left_counter = 0;
+right_counter = 0;
+
+forward_pulse(240);
+       
       fastStop(1000);
        
       left_counter = 0;
       right_counter = 0;
       
-      turnLeft(160);
-    }
+      turnLeft(170);
     
-    forwards(290);
+   
+    left_counter = 0;
+    right_counter = 0;
+    
+    forward_pulse(240);
     fastStop(1000);
     reset();
+   
+   turnLeft(170);
+      
+      left_counter = 0;
+      right_counter = 0;
+       
+      forward_pulse(240);
+       
+      fastStop(1000);
+       
+      left_counter = 0;
+      right_counter = 0;
+      
+     // turnLeft(160);
+   
+   
+   // left_counter = 0;
+  //  right_counter = 0;
+    
+   // forward_pulse(290);
+   // fastStop(1000);
+    reset();
+   
    
    while(1);
    
@@ -112,18 +143,20 @@ i = 0;
 
 
 
-void turnLeft (int userTurn)
+void turnLeft (int userTurn2)
 {
       analogWrite (L_Ena, 0);
       analogWrite (R_Ena, 0);
       
+      right_counter = 0;
+      
    
-      while(right_counter < userTurn)
+      while(right_counter < userTurn2)
         {
           analogWrite (R_Ena, 255);
           analogWrite (L_Ena, 0);
           
-          digitalWrite(In1, HIGH);
+          digitalWrite(In1, LOW);
           digitalWrite(In3, HIGH);
           digitalWrite(In2, LOW);
           digitalWrite(In4, LOW);
@@ -143,12 +176,18 @@ void turnRight (int userTurn)
           analogWrite (R_Ena, 0);
           
           digitalWrite(In1, HIGH);
-          digitalWrite(In3, HIGH);
+          digitalWrite(In3, LOW);
           digitalWrite(In2, LOW);
           digitalWrite(In4, LOW);
           
         }
 } 
+
+
+
+
+
+
 
 
 void left_increment() {
@@ -160,22 +199,26 @@ void right_increment() {
 }
 
 
-/*
-void forward(void)
+
+void forward_pulse(int pulse)
   {
-    analogWrite(L_Ena, 235);
-    analogWrite(R_Ena, 255);
     
-    digitalWrite(In1, HIGH);
-    digitalWrite(In3, HIGH);
-    digitalWrite(In2, LOW);
-    digitalWrite(In4, LOW);
+    while(left_counter < pulse)
+      {
+        analogWrite(L_Ena, 235);
+        analogWrite(R_Ena, 255);
+    
+        digitalWrite(In1, HIGH);
+        digitalWrite(In3, HIGH);
+        digitalWrite(In2, LOW);
+        digitalWrite(In4, LOW);
+      }
   }
 
-*/
 
 
-void forwards(int duration)
+
+void forward_time(int duration)
   {
     analogWrite(L_Ena, 220);
     analogWrite(R_Ena, 255);
